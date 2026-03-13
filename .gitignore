@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+
+# Home Assistant
+*.db
+*.db-shm
+*.db-wal
+home-assistant_v2.db
+home-assistant.log
+home-assistant.log.*
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude
+.claude/settings.local.json
+
+# Custom
+.claude/
+.devcontainer/
+.examples/
+.vscode/

@@ -1,0 +1,31 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "VSware",
+        "description": "Enter your VSware credentials.",
+        "data": {
+          "website_url": "Website URL (e.g. https://lecheile.app.vsware.ie)",
+          "username": "Username",
+          "password": "Password",
+          "scan_interval": "Scan interval (seconds)"
+        }
+      },
+      "select_learner": {
+        "title": "Select student",
+        "description": "Choose the student to monitor.",
+        "data": {
+          "learner_id": "Student"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid credentials. Please check your username and password.",
+      "cannot_fetch_user": "Logged in but failed to retrieve user details.",
+      "no_learners": "No students found for this account."
+    },
+    "abort": {
+      "already_configured": "This student is already configured."
+    }
+  }
+}
