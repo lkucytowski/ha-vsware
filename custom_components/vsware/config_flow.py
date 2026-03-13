@@ -30,7 +30,7 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
         vol.Required(CONF_WEBSITE_URL): str,
         vol.Required(CONF_USERNAME): str,
         vol.Required(CONF_PASSWORD): str,
-        vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): vol.All(int, vol.Range(min=MIN_SCAN_INTERVAL)),
+        vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): int,
     }
 )
 
@@ -58,22 +58,25 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            api_base_url = derive_api_base_url(user_input[CONF_WEBSITE_URL])
-            token = await self._async_login(api_base_url, user_input[CONF_USERNAME], user_input[CONF_PASSWORD])
-            if token is None:
-                errors["base"] = "invalid_auth"
+            if user_input.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL) < MIN_SCAN_INTERVAL:
+                errors[CONF_SCAN_INTERVAL] = "scan_interval_too_low"
             else:
-                self._token = token
-                academic_year_id = await self._async_fetch_academic_year_id(api_base_url, token)
-                if academic_year_id is None:
-                    errors["base"] = "cannot_fetch_user"
+                api_base_url = derive_api_base_url(user_input[CONF_WEBSITE_URL])
+                token = await self._async_login(api_base_url, user_input[CONF_USERNAME], user_input[CONF_PASSWORD])
+                if token is None:
+                    errors["base"] = "invalid_auth"
                 else:
-                    self._learners = await self._async_fetch_learners(api_base_url, token)
-                    if not self._learners:
-                        errors["base"] = "no_learners"
+                    self._token = token
+                    academic_year_id = await self._async_fetch_academic_year_id(api_base_url, token)
+                    if academic_year_id is None:
+                        errors["base"] = "cannot_fetch_user"
                     else:
-                        self._data = {**user_input, CONF_PARENT_ID: str(academic_year_id)}
-                        return await self.async_step_select_learner()
+                        self._learners = await self._async_fetch_learners(api_base_url, token)
+                        if not self._learners:
+                            errors["base"] = "no_learners"
+                        else:
+                            self._data = {**user_input, CONF_PARENT_ID: str(academic_year_id)}
+                            return await self.async_step_select_learner()
 
         return self.async_show_form(
             step_id="user",
