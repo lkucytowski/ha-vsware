@@ -9,7 +9,8 @@ CONF_PREFERRED_NAME = "preferred_name"
 CONF_SCAN_INTERVAL = "scan_interval"
 CONF_WEBSITE_URL = "website_url"
 
-DEFAULT_SCAN_INTERVAL = 3600  # seconds
+DEFAULT_SCAN_INTERVAL = 60  # minutes
+MIN_SCAN_INTERVAL = 60  # minutes
 
 LOGIN_PATH = "/tokenapiV2/login"
 LEARNERS_PATH = "/control/household/learners"

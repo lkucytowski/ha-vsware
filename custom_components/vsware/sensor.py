@@ -69,7 +69,7 @@ class VswareCoordinator(DataUpdateCoordinator):
             hass,
             _LOGGER,
             name=DOMAIN,
-            update_interval=timedelta(seconds=scan_interval),
+            update_interval=timedelta(minutes=scan_interval),
         )
         self._api_base_url = derive_api_base_url(config[CONF_WEBSITE_URL])
         self._username = config[CONF_USERNAME]

@@ -18,6 +18,7 @@ from .const import (
     CONF_USERNAME,
     CONF_WEBSITE_URL,
     DEFAULT_SCAN_INTERVAL,
+    MIN_SCAN_INTERVAL,
     DOMAIN,
     LEARNERS_PATH,
     LOGIN_PATH,
@@ -29,7 +30,7 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
         vol.Required(CONF_WEBSITE_URL): str,
         vol.Required(CONF_USERNAME): str,
         vol.Required(CONF_PASSWORD): str,
-        vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): int,
+        vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): vol.All(int, vol.Range(min=MIN_SCAN_INTERVAL)),
     }
 )
 
