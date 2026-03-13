@@ -1,8 +1,6 @@
 """Config flow for VSware integration."""
 from __future__ import annotations
 
-from urllib.parse import urlparse, urlunparse
-
 import aiohttp
 import voluptuous as vol
 
@@ -10,8 +8,9 @@ from homeassistant import config_entries
 
 from .const import (
     CONF_DISPLAY_NAME,
+    derive_api_base_url,
     CONF_LEARNER_ID,
-    CONF_PARENT_ID,
+    CONF_ACADEMIC_YEAR_ID,
     CONF_PREFERRED_NAME,
     CONF_PASSWORD,
     CONF_SCAN_INTERVAL,
@@ -34,12 +33,6 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
     }
 )
 
-
-def derive_api_base_url(website_url: str) -> str:
-    """Derive the API base URL from the website URL by removing the 'app' subdomain segment."""
-    parsed = urlparse(website_url.rstrip("/"))
-    api_netloc = parsed.netloc.replace(".app.", ".")
-    return urlunparse(parsed._replace(netloc=api_netloc))
 
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -75,7 +68,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         if not self._learners:
                             errors["base"] = "no_learners"
                         else:
-                            self._data = {**user_input, CONF_PARENT_ID: str(academic_year_id)}
+                            self._data = {**user_input, CONF_ACADEMIC_YEAR_ID: str(academic_year_id)}
                             return await self.async_step_select_learner()
 
         return self.async_show_form(
@@ -101,7 +94,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_DISPLAY_NAME: display_name,
                 CONF_PREFERRED_NAME: preferred_name,
             }
-            await self.async_set_unique_id(f"{data[CONF_PARENT_ID]}_{learner_id}")
+            await self.async_set_unique_id(f"{data[CONF_ACADEMIC_YEAR_ID]}_{learner_id}")
             self._abort_if_unique_id_configured()
             return self.async_create_entry(title=f"VSware – {display_name}", data=data)
 

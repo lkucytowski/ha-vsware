@@ -18,13 +18,13 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 
-from .config_flow import derive_api_base_url
 from .const import (
+    derive_api_base_url,
     ATTENDANCE_PATH,
     BEHAVIOUR_PATH,
     CONF_DISPLAY_NAME,
     CONF_LEARNER_ID,
-    CONF_PARENT_ID,
+    CONF_ACADEMIC_YEAR_ID,
     CONF_PASSWORD,
     CONF_PREFERRED_NAME,
     CONF_USERNAME,
@@ -52,9 +52,9 @@ async def async_setup_entry(
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
     entities: list[SensorEntity] = [VswareTotalSchoolDaysSensor(coordinator, entry)]
     for data_key, name, slug, icon in _ATTENDANCE_LIST_SENSORS:
-        entities.append(VswareAttendanceListSensor(coordinator, entry, data_key, name, slug, icon))
-    entities.append(VswareBehaviourPointsSensor(coordinator, entry, "positivePoints", "Positive Points", "positive_points", "mdi:thumb-up"))
-    entities.append(VswareBehaviourPointsSensor(coordinator, entry, "negativePoints", "Negative Points", "negative_points", "mdi:thumb-down"))
+        entities.append(VswareDataSensor(coordinator, entry, "attendance", data_key, name, slug, icon, "days", is_list=True))
+    entities.append(VswareDataSensor(coordinator, entry, "behaviour", "positivePoints", "Positive Points", "positive_points", "mdi:thumb-up", "points"))
+    entities.append(VswareDataSensor(coordinator, entry, "behaviour", "negativePoints", "Negative Points", "negative_points", "mdi:thumb-down", "points"))
     entities.append(VswareLatestBehaviourSensor(coordinator, entry))
     entities.append(VswareProgressScoreSensor(coordinator, entry))
     async_add_entities(entities)
@@ -75,7 +75,7 @@ class VswareCoordinator(DataUpdateCoordinator):
         self._username = config[CONF_USERNAME]
         self._password = config[CONF_PASSWORD]
         self._learner_id = str(config[CONF_LEARNER_ID])
-        self._parent_id = config[CONF_PARENT_ID]
+        self._academic_year_id = config[CONF_ACADEMIC_YEAR_ID]
         self._token: str | None = None
 
     async def _async_login(self) -> None:
@@ -96,7 +96,7 @@ class VswareCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self) -> dict:
         """Fetch attendance and behaviour data."""
         attendance_url = self._api_base_url + ATTENDANCE_PATH.format(
-            learner_id=self._learner_id, parent_id=self._parent_id
+            learner_id=self._learner_id, academic_year_id=self._academic_year_id
         )
         behaviour_url = f"{self._api_base_url}{BEHAVIOUR_PATH}"
 
@@ -200,80 +200,54 @@ class VswareTotalSchoolDaysSensor(CoordinatorEntity, SensorEntity):
         return attendance.get("totalSchoolDays")
 
 
-class VswareAttendanceListSensor(CoordinatorEntity, SensorEntity):
-    """Sensor that exposes a count and date list for an attendance field."""
+class VswareDataSensor(CoordinatorEntity, SensorEntity):
+    """Generic sensor for a value from a VSware data section."""
 
     _attr_has_entity_name = True
     _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_native_unit_of_measurement = "days"
 
     def __init__(
         self,
         coordinator: VswareCoordinator,
         entry: ConfigEntry,
+        data_section: str,
         data_key: str,
         name: str,
         slug: str,
         icon: str,
+        unit: str,
+        is_list: bool = False,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
+        self._data_section = data_section
         self._data_key = data_key
+        self._is_list = is_list
         self._attr_unique_id = f"{entry.entry_id}_{slug}"
         self._attr_name = name
         self._attr_icon = icon
+        self._attr_native_unit_of_measurement = unit
         self.entity_id = f"sensor.vsware_{_entity_slug(entry)}_{slug}"
         self._attr_device_info = _device_info(entry)
 
     @property
     def native_value(self) -> int | None:
-        """Return the count of days in the list."""
-        attendance = (self.coordinator.data or {}).get("attendance")
-        if attendance is None:
+        """Return the sensor value."""
+        section = (self.coordinator.data or {}).get(self._data_section)
+        if section is None:
             return None
-        return len(attendance.get(self._data_key, []))
+        value = section.get(self._data_key)
+        return len(value or []) if self._is_list else value
 
     @property
     def extra_state_attributes(self) -> dict | None:
-        """Return the list of dates as an attribute."""
-        attendance = (self.coordinator.data or {}).get("attendance")
-        if attendance is None:
+        """Return date list for list-type sensors."""
+        if not self._is_list:
             return None
-        return {"dates": attendance.get(self._data_key, [])}
-
-
-class VswareBehaviourPointsSensor(CoordinatorEntity, SensorEntity):
-    """Sensor for positive or negative behaviour points."""
-
-    _attr_has_entity_name = True
-    _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_native_unit_of_measurement = "points"
-
-    def __init__(
-        self,
-        coordinator: VswareCoordinator,
-        entry: ConfigEntry,
-        data_key: str,
-        name: str,
-        slug: str,
-        icon: str,
-    ) -> None:
-        """Initialize the sensor."""
-        super().__init__(coordinator)
-        self._data_key = data_key
-        self._attr_unique_id = f"{entry.entry_id}_{slug}"
-        self._attr_name = name
-        self._attr_icon = icon
-        self.entity_id = f"sensor.vsware_{_entity_slug(entry)}_{slug}"
-        self._attr_device_info = _device_info(entry)
-
-    @property
-    def native_value(self) -> int | None:
-        """Return the behaviour points value."""
-        behaviour = (self.coordinator.data or {}).get("behaviour")
-        if behaviour is None:
+        section = (self.coordinator.data or {}).get(self._data_section)
+        if section is None:
             return None
-        return behaviour.get(self._data_key)
+        return {"dates": section.get(self._data_key, [])}
 
 
 class VswareLatestBehaviourSensor(CoordinatorEntity, SensorEntity):

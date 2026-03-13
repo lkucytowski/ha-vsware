@@ -1,7 +1,7 @@
 {
   "domain": "vsware",
   "name": "VSware",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "documentation": "https://github.com/lkucytowski/ha-vsware",
   "issue_tracker": "https://github.com/lkucytowski/ha-vsware/issues",
   "codeowners": ["@lkucytowski"],
