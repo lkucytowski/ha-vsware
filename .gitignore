@@ -21,15 +21,11 @@ home-assistant.log
 home-assistant.log.*
 
 # IDE
-.vscode/settings.json
 .idea/
 
 # OS
 .DS_Store
 Thumbs.db
-
-# Claude
-.claude/settings.local.json
 
 # Custom
 .claude/
