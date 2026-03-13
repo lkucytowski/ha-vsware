@@ -1,0 +1,12 @@
+{
+  "domain": "vsware",
+  "name": "VSware",
+  "codeowners": ["@lkucytowski"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/lkucytowski/ha-vsware",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/lkucytowski/ha-vsware/issues",
+  "requirements": [],
+  "version": "1.0.0"
+}

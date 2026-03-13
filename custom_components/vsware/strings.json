@@ -1,0 +1,36 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "VSware",
+        "description": "Enter your VSware credentials.",
+        "data": {
+          "website_url": "Website URL",
+          "username": "Username",
+          "password": "Password",
+          "scan_interval": "Scan interval (minutes)"
+        },
+        "data_description": {
+          "website_url": "The URL of your school's VSware portal.",
+          "scan_interval": "How often to refresh data from VSware (minimum 60 minutes). VSware updates attendance and behaviour data at most once per school day, so polling more frequently would have no effect."
+        }
+      },
+      "select_learner": {
+        "title": "Select student",
+        "description": "Choose the student to monitor.",
+        "data": {
+          "learner_id": "Student"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid credentials. Please check your username and password.",
+      "cannot_fetch_user": "Logged in but failed to retrieve user details.",
+      "no_learners": "No students found for this account.",
+      "scan_interval_too_low": "Scan interval must be at least 60 minutes."
+    },
+    "abort": {
+      "already_configured": "This student is already configured."
+    }
+  }
+}
