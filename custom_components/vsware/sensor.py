@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from datetime import timedelta
 
 import aiohttp
@@ -25,6 +26,7 @@ from .const import (
     CONF_LEARNER_ID,
     CONF_PARENT_ID,
     CONF_PASSWORD,
+    CONF_PREFERRED_NAME,
     CONF_USERNAME,
     CONF_WEBSITE_URL,
     DOMAIN,
@@ -156,6 +158,12 @@ class VswareCoordinator(DataUpdateCoordinator):
         return raw
 
 
+def _entity_slug(entry: ConfigEntry) -> str:
+    """Return a sanitized slug for entity_id construction (preferredGivenName or learner_id)."""
+    name = entry.data.get(CONF_PREFERRED_NAME) or str(entry.data[CONF_LEARNER_ID])
+    return re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
+
+
 def _device_info(entry: ConfigEntry) -> DeviceInfo:
     learner_id = entry.data[CONF_LEARNER_ID]
     display_name = entry.data.get(CONF_DISPLAY_NAME, f"Student {learner_id}")
@@ -178,10 +186,9 @@ class VswareTotalSchoolDaysSensor(CoordinatorEntity, SensorEntity):
     def __init__(self, coordinator: VswareCoordinator, entry: ConfigEntry) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        learner_id = entry.data[CONF_LEARNER_ID]
         self._attr_unique_id = f"{entry.entry_id}_total_school_days"
         self._attr_name = "Total School Days"
-        self.entity_id = f"sensor.vsware_{learner_id}_total_school_days"
+        self.entity_id = f"sensor.vsware_{_entity_slug(entry)}_total_school_days"
         self._attr_device_info = _device_info(entry)
 
     @property
@@ -211,12 +218,11 @@ class VswareAttendanceListSensor(CoordinatorEntity, SensorEntity):
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        learner_id = entry.data[CONF_LEARNER_ID]
         self._data_key = data_key
         self._attr_unique_id = f"{entry.entry_id}_{slug}"
         self._attr_name = name
         self._attr_icon = icon
-        self.entity_id = f"sensor.vsware_{learner_id}_{slug}"
+        self.entity_id = f"sensor.vsware_{_entity_slug(entry)}_{slug}"
         self._attr_device_info = _device_info(entry)
 
     @property
@@ -254,12 +260,11 @@ class VswareBehaviourPointsSensor(CoordinatorEntity, SensorEntity):
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        learner_id = entry.data[CONF_LEARNER_ID]
         self._data_key = data_key
         self._attr_unique_id = f"{entry.entry_id}_{slug}"
         self._attr_name = name
         self._attr_icon = icon
-        self.entity_id = f"sensor.vsware_{learner_id}_{slug}"
+        self.entity_id = f"sensor.vsware_{_entity_slug(entry)}_{slug}"
         self._attr_device_info = _device_info(entry)
 
     @property
@@ -280,11 +285,10 @@ class VswareLatestBehaviourSensor(CoordinatorEntity, SensorEntity):
     def __init__(self, coordinator: VswareCoordinator, entry: ConfigEntry) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        learner_id = entry.data[CONF_LEARNER_ID]
-        self._learner_id = str(learner_id)
+        self._learner_id = str(entry.data[CONF_LEARNER_ID])
         self._attr_unique_id = f"{entry.entry_id}_latest_behaviour"
         self._attr_name = "Most Recent Points"
-        self.entity_id = f"sensor.vsware_{learner_id}_most_recent_points"
+        self.entity_id = f"sensor.vsware_{_entity_slug(entry)}_most_recent_points"
         self._attr_device_info = _device_info(entry)
 
     def _latest_entry(self) -> dict | None:
@@ -334,10 +338,9 @@ class VswareProgressScoreSensor(CoordinatorEntity, SensorEntity):
     def __init__(self, coordinator: VswareCoordinator, entry: ConfigEntry) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        learner_id = entry.data[CONF_LEARNER_ID]
         self._attr_unique_id = f"{entry.entry_id}_progress_score"
         self._attr_name = "Progress Score"
-        self.entity_id = f"sensor.vsware_{learner_id}_progress_score"
+        self.entity_id = f"sensor.vsware_{_entity_slug(entry)}_progress_score"
         self._attr_device_info = _device_info(entry)
 
     @property

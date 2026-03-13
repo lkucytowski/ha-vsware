@@ -5,6 +5,7 @@ CONF_PASSWORD = "password"
 CONF_PARENT_ID = "parent_id"
 CONF_LEARNER_ID = "learner_id"
 CONF_DISPLAY_NAME = "display_name"
+CONF_PREFERRED_NAME = "preferred_name"
 CONF_SCAN_INTERVAL = "scan_interval"
 CONF_WEBSITE_URL = "website_url"
 

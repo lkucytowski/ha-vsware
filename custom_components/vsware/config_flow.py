@@ -12,6 +12,7 @@ from .const import (
     CONF_DISPLAY_NAME,
     CONF_LEARNER_ID,
     CONF_PARENT_ID,
+    CONF_PREFERRED_NAME,
     CONF_PASSWORD,
     CONF_SCAN_INTERVAL,
     CONF_USERNAME,
@@ -88,7 +89,14 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             learner_id = user_input[CONF_LEARNER_ID]
             display_name = learner_options[learner_id]
-            data = {**self._data, CONF_LEARNER_ID: learner_id, CONF_DISPLAY_NAME: display_name}
+            learner = next((l for l in self._learners if str(l["learnerId"]) == learner_id), {})
+            preferred_name = learner.get("preferredGivenName") or learner.get("givenName") or learner_id
+            data = {
+                **self._data,
+                CONF_LEARNER_ID: learner_id,
+                CONF_DISPLAY_NAME: display_name,
+                CONF_PREFERRED_NAME: preferred_name,
+            }
             await self.async_set_unique_id(f"{data[CONF_PARENT_ID]}_{learner_id}")
             self._abort_if_unique_id_configured()
             return self.async_create_entry(title=f"VSware – {display_name}", data=data)
