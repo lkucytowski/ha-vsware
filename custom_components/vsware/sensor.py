@@ -273,6 +273,7 @@ class VswareLatestBehaviourSensor(CoordinatorEntity, SensorEntity):
         entries = [
             e for e in behaviour.get("collection", [])
             if str(e.get("learnerId")) == self._learner_id
+            and e.get("behaviourEntry", {}).get("behaviourPoints", 0) != 0
         ]
         return entries[0] if entries else None
 
